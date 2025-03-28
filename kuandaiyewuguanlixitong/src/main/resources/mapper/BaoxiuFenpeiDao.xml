@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.BaoxiuFenpeiDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.baoxiu_id as baoxiuId
+        ,a.yewurenyuan_id as yewurenyuanId
+        ,a.fenpei_time as fenpeiTime
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.BaoxiuFenpeiView" >
+        SELECT
+        <include refid="Base_Column_List" />
+        <!-- 级联表的字段 -->
+        ,baoxiu.yonghu_id as baoxiuYonghuId
+        ,baoxiu.baoxiu_name as baoxiuName
+        ,baoxiu.baoxiu_photo as baoxiuPhoto
+        ,baoxiu.baoxiu_types as baoxiuTypes
+        ,baoxiu.baoxiu_zhuangtai_types as baoxiuZhuangtaiTypes
+        ,baoxiu.baoxiu_content as baoxiuContent
+        ,yewurenyuan.yewurenyuan_name as yewurenyuanName
+        ,yewurenyuan.yewurenyuan_phone as yewurenyuanPhone
+        ,yewurenyuan.yewurenyuan_id_number as yewurenyuanIdNumber
+        ,yewurenyuan.yewurenyuan_photo as yewurenyuanPhoto
+        ,yewurenyuan.new_money as newMoney
+        ,yewurenyuan.yewurenyuan_email as yewurenyuanEmail
+
+        FROM baoxiu_fenpei  a
+        left JOIN baoxiu baoxiu ON a.baoxiu_id = baoxiu.id
+        left JOIN yewurenyuan yewurenyuan ON a.yewurenyuan_id = yewurenyuan.id
+
+        <where>
+            <if test="params.ids != null">
+                and a.id in
+                <foreach item="item" index="index" collection="params.ids" open="(" separator="," close=")">
+                #{item}
+                </foreach>
+            </if>
+            <if test="params.baoxiuId != null and params.baoxiuId != ''">
+                and (
+                    a.baoxiu_id = #{params.baoxiuId}
+                )
+            </if>
+            <if test="params.yewurenyuanId != null and params.yewurenyuanId != ''">
+                and (
+                    a.yewurenyuan_id = #{params.yewurenyuanId}
+                )
+            </if>
+            <if test=" params.fenpeiTimeStart != '' and params.fenpeiTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.fenpei_time) >= UNIX_TIMESTAMP(#{params.fenpeiTimeStart}) ]]>
+            </if>
+            <if test=" params.fenpeiTimeEnd != '' and params.fenpeiTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.fenpei_time) <= UNIX_TIMESTAMP(#{params.fenpeiTimeEnd}) ]]>
+            </if>
+
+                <!-- 判断报修的id不为空 -->
+            <if test=" params.baoxiuIdNotNull != '' and params.baoxiuIdNotNull != null and params.baoxiuIdNotNull != 'null' ">
+                and a.baoxiu_id IS NOT NULL
+            </if>
+            <if test="params.yonghuId != null  and params.yonghuId != ''">
+                and baoxiu.yonghu_id = #{params.yonghuId}
+            </if>
+            <if test=" params.baoxiuName != '' and params.baoxiuName != null and params.baoxiuName != 'null' ">
+                and baoxiu.baoxiu_name like CONCAT('%',#{params.baoxiuName},'%')
+            </if>
+            <if test="params.baoxiuTypes != null  and params.baoxiuTypes != ''">
+                and baoxiu.baoxiu_types = #{params.baoxiuTypes}
+            </if>
+
+            <if test=" params.insertTimeStart != '' and params.insertTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(baoxiu.insert_time) >= UNIX_TIMESTAMP(#{params.insertTimeStart}) ]]>
+            </if>
+            <if test=" params.insertTimeEnd != '' and params.insertTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(baoxiu.insert_time) <= UNIX_TIMESTAMP(#{params.insertTimeEnd}) ]]>
+            </if>
+            <if test="params.baoxiuZhuangtaiTypes != null  and params.baoxiuZhuangtaiTypes != ''">
+                and baoxiu.baoxiu_zhuangtai_types = #{params.baoxiuZhuangtaiTypes}
+            </if>
+
+            <if test=" params.baoxiuContent != '' and params.baoxiuContent != null and params.baoxiuContent != 'null' ">
+                and baoxiu.baoxiu_content like CONCAT('%',#{params.baoxiuContent},'%')
+            </if>
+                <!-- 判断业务人员的id不为空 -->
+            <if test=" params.yewurenyuanIdNotNull != '' and params.yewurenyuanIdNotNull != null and params.yewurenyuanIdNotNull != 'null' ">
+                and a.yewurenyuan_id IS NOT NULL
+            </if>
+            <if test=" params.yewurenyuanName != '' and params.yewurenyuanName != null and params.yewurenyuanName != 'null' ">
+                and yewurenyuan.yewurenyuan_name like CONCAT('%',#{params.yewurenyuanName},'%')
+            </if>
+            <if test=" params.yewurenyuanPhone != '' and params.yewurenyuanPhone != null and params.yewurenyuanPhone != 'null' ">
+                and yewurenyuan.yewurenyuan_phone like CONCAT('%',#{params.yewurenyuanPhone},'%')
+            </if>
+            <if test=" params.yewurenyuanIdNumber != '' and params.yewurenyuanIdNumber != null and params.yewurenyuanIdNumber != 'null' ">
+                and yewurenyuan.yewurenyuan_id_number like CONCAT('%',#{params.yewurenyuanIdNumber},'%')
+            </if>
+            <if test="params.newMoneyStart != null ">
+                <![CDATA[  and yewurenyuan.new_money >= #{params.newMoneyStart}   ]]>
+            </if>
+            <if test="params.newMoneyEnd != null ">
+                <![CDATA[  and yewurenyuan.new_money <= #{params.newMoneyEnd}   ]]>
+            </if>
+            <if test=" params.yewurenyuanEmail != '' and params.yewurenyuanEmail != null and params.yewurenyuanEmail != 'null' ">
+                and yewurenyuan.yewurenyuan_email like CONCAT('%',#{params.yewurenyuanEmail},'%')
+            </if>
+        </where>
+        order by a.${params.sort} ${params.order}
+    </select>
+
+</mapper>
